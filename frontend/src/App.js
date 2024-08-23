@@ -7,30 +7,33 @@ import kokoaNutrition from './images/kokoa_nutrition.png';
 import logoNutritionix from './images/logo_nutritionix.png';
 
 function App() {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [cart, setCart] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
-  const [view, setView] = useState('home');
-  const [openCardIndex, setOpenCardIndex] = useState(null);
-  const [filteredResults, setFilteredResults] = useState([]);
-  const [filter, setFilter] = useState('all'); // 'all', 'withImage', 'withoutImage'
+  const [query, setQuery] = useState(''); // Almacena la cadena de búsqueda que ingresa el usuario
+  const [results, setResults] = useState([]); // Almacena los resultados de búsqueda obtenidos desde la API
+  const [loading, setLoading] = useState(false); // Controla el estado de carga mientras se realiza una búsqueda.
+  const [cart, setCart] = useState([]); // Almacena los elementos que el usuario ha agregado al carrito
+  const [suggestions, setSuggestions] = useState([]); // Almacena las sugerencias de búsqueda que se muestran mientras el usuario escribe
+  const [view, setView] = useState('home'); // Controla la vista actual (página principal o carrito de compras)
+  const [openCardIndex, setOpenCardIndex] = useState(null); // Almacena el índice de la tarjeta que está expandida para mostrar detalles adicionales
+  const [filteredResults, setFilteredResults] = useState([]); // Almacena los resultados filtrados basados en la imagen
+  const [filter, setFilter] = useState('all'); // Controla qué tipo de resultados se están mostrando ("todos", "con imagen", "sin imagen")
 
-  useEffect(() => {
+  useEffect(() => { // useEffect para cargar el carrito desde localStorage
     const storedCart = JSON.parse(localStorage.getItem('cart'));
     if (storedCart) {
       setCart(storedCart);
     }
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { // useEffect para guardar el carrito en localStorage
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  useEffect(() => {
+  useEffect(() => { // useEffect para aplicar filtros
     filterResults();
   }, [filter, results]);
+
+// Realiza una llamada a la API para buscar alimentos según el término de búsqueda (query). 
+// Los resultados obtenidos se almacenan en el estado results, y se restablece el filtro a "todos"
 
   const handleSearch = async () => {
     setLoading(true);
@@ -54,6 +57,8 @@ function App() {
     }
   };
 
+  // Busca sugerencias de búsqueda a medida que el usuario escribe. 
+  // Muestra una lista de sugerencias basada en la entrada actual
   const fetchSuggestions = async (input) => {
     if (!input) return;
 
@@ -74,17 +79,22 @@ function App() {
     }
   };
 
+  // Actualiza la cadena de búsqueda (query) 
+  // y busca sugerencias basadas en la nueva entrada
   const handleInputChange = (e) => {
     const input = e.target.value;
     setQuery(input);
     fetchSuggestions(input);
   };
 
+  // Establece la sugerencia seleccionada como la 
+  // nueva consulta y ejecuta la búsqueda
   const handleSuggestionClick = (suggestion) => {
     setQuery(suggestion);
     setSuggestions([]);
     handleSearch();
   };
+
 
   const renderSuggestions = () => {
     return (
@@ -102,6 +112,7 @@ function App() {
     );
   };
 
+  // Permite buscar al presionar la tecla Enter
   const handleKeyPress = (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -109,19 +120,26 @@ function App() {
     }
   };
 
+  // Agrega un elemento al carrito, generando 
+  // un identificador único si es necesario
   const addToCart = (item) => {
     const newItem = { ...item, id: item.tag_id || item.nix_item_id || `${item.food_name}-${Math.random()}` };
     setCart([...cart, newItem]);
   };
 
+  // Elimina un elemento del carrito
   const removeFromCart = (id) => {
     setCart(cart.filter(item => item.id !== id));
   };
 
+  // Alterna la expansión o contracción de una tarjeta 
+  // de producto para mostrar u ocultar los detalles
   const toggleCardDetails = (index) => {
     setOpenCardIndex(openCardIndex === index ? null : index);
   };
 
+  // Filtra los resultados de búsqueda en función de si tienen 
+  // una imagen o no, según el filtro seleccionado
   const filterResults = () => {
     if (filter === 'withImage') {
       setFilteredResults(results.filter(item => item.photo_url && item.photo_url !== "https://d2eawub7utcl6.cloudfront.net/images/nix-apple-grey.png"));
