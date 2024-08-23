@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, Card, InputGroup, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Card, InputGroup, Spinner, Collapse } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './App.css'; // Archivo CSS personalizado
-import { FaShoppingCart } from 'react-icons/fa';
+import './App.css';
 import cartIcon from './icons/cart-shopping-solid.svg';
+import kokoaNutrition from './images/kokoa_nutrition.png';
+import logoNutritionix from './images/logo_nutritionix.png';
 
 function App() {
   const [query, setQuery] = useState('');
@@ -12,6 +13,9 @@ function App() {
   const [cart, setCart] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [view, setView] = useState('home');
+  const [openCardIndex, setOpenCardIndex] = useState(null);
+  const [filteredResults, setFilteredResults] = useState([]);
+  const [filter, setFilter] = useState('all'); // 'all', 'withImage', 'withoutImage'
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem('cart'));
@@ -23,6 +27,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
+
+  useEffect(() => {
+    filterResults();
+  }, [filter, results]);
 
   const handleSearch = async () => {
     setLoading(true);
@@ -38,6 +46,7 @@ function App() {
       }
       const data = await response.json();
       setResults(data);
+      setFilter('all');
     } catch (error) {
       console.error('Error in handleSearch:', error.message);
     } finally {
@@ -109,20 +118,41 @@ function App() {
     setCart(cart.filter(item => item.id !== id));
   };
 
+  const toggleCardDetails = (index) => {
+    setOpenCardIndex(openCardIndex === index ? null : index);
+  };
+
+  const filterResults = () => {
+    if (filter === 'withImage') {
+      setFilteredResults(results.filter(item => item.photo_url && item.photo_url !== "https://d2eawub7utcl6.cloudfront.net/images/nix-apple-grey.png"));
+    } else if (filter === 'withoutImage') {
+      setFilteredResults(results.filter(item => item.photo_url === "https://d2eawub7utcl6.cloudfront.net/images/nix-apple-grey.png"));
+    } else {
+      setFilteredResults(results);
+    }
+  };
+
   const renderCart = () => {
     return (
       <Container className="mt-5">
-        <Row>
-          <Col>
+        <Row className="justify-content-md-center">
+          <Col md={12} className="d-flex justify-content-center mb-4">
+            <img src={kokoaNutrition} alt="Kokoa Nutrition" style={styles.mainLogo} />
+          </Col>
+        </Row>
+        <Row className="justify-content-md-center">
+          <Col md={8} className="text-center">
             <h2 style={styles.cartTitle}>Carrito de Compras</h2>
             {cart.length > 0 ? (
               <ul style={styles.cartList}>
                 {cart.map((item, index) => (
                   <li key={index} style={styles.cartItem}>
-                    <img src={item.photo_url || "https://example.com/default-image.jpg"} alt={item.item_name} style={styles.cartItemImage} />
+                    <img src={item.photo_url} alt={item.item_name} style={styles.cartItemImage} />
                     <div>
-                      <strong>{item.item_name}</strong><br />
-                      {item.nf_calories ? `${item.nf_calories} kcal` : 'N/A'} kcal
+                      <strong style={{ color: '#ffffff' }}>{item.item_name}</strong><br />
+                      <span style={{ color: '#ffffff' }}>
+                        {item.nf_calories ? `${item.nf_calories} kcal` : ''}
+                      </span>
                     </div>
                     <Button variant="danger" onClick={() => removeFromCart(item.id)} style={styles.removeButton}>Eliminar</Button>
                   </li>
@@ -136,6 +166,12 @@ function App() {
             </Button>
           </Col>
         </Row>
+        <Row className="justify-content-md-center mt-5">
+          <Col md={8} className="text-center">
+            <img src={logoNutritionix} alt="Logo Nutritionix" style={styles.bottomLogo} />
+            <p style={styles.creditText}>Créditos a Nutritionix</p>
+          </Col>
+        </Row>
       </Container>
     );
   };
@@ -143,6 +179,11 @@ function App() {
   const renderHome = () => {
     return (
       <Container className="mt-5">
+        <Row className="justify-content-md-center">
+          <Col md={12} className="d-flex justify-content-center mb-4">
+            <img src={kokoaNutrition} alt="Kokoa Nutrition" style={styles.mainLogo} />
+          </Col>
+        </Row>
         <Row className="justify-content-md-center">
           <Col md={8}>
             <Button variant="secondary" className="mb-4" onClick={() => setView('cart')} style={styles.cartButton}>
@@ -164,32 +205,53 @@ function App() {
               </InputGroup>
               {suggestions.length > 0 && renderSuggestions()}
             </Form>
+            <div style={styles.filterContainer}>
+              <Button variant={filter === 'all' ? 'primary' : 'secondary'} onClick={() => setFilter('all')} style={styles.filterButton}>
+                Todos
+              </Button>
+              <Button variant={filter === 'withImage' ? 'primary' : 'secondary'} onClick={() => setFilter('withImage')} style={styles.filterButton}>
+                Con Imagen
+              </Button>
+              <Button variant={filter === 'withoutImage' ? 'primary' : 'secondary'} onClick={() => setFilter('withoutImage')} style={styles.filterButton}>
+                Sin Imagen
+              </Button>
+            </div>
             <Row>
-              {results.length > 0 ? (
-                results.map((result, index) => (
+              {filteredResults.length > 0 ? (
+                filteredResults.map((result, index) => (
                   <Col md={4} key={index} className="mb-4">
-                    <Card style={styles.card}>
+                    <Card
+                      style={{
+                        ...styles.card,
+                        transform: openCardIndex === index ? 'scale(1.1)' : 'scale(1)',
+                        boxShadow: openCardIndex === index ? '0 8px 16px rgba(255, 255, 255, 0.3)' : '0 4px 8px rgba(0, 0, 0, 0.1)',
+                      }}
+                      onClick={() => toggleCardDetails(index)}
+                    >
                       <div style={styles.imageContainer}>
                         <Card.Img
                           variant="top"
-                          src={result.photo_url || "https://example.com/default-image.jpg"}
+                          src={result.photo_url}
                           alt={result.item_name}
                           style={styles.cardImage}
                         />
                       </div>
                       <Card.Body style={styles.cardBody}>
                         <Card.Title style={styles.cardTitle}>{result.item_name}</Card.Title>
-                        <Card.Text style={styles.cardText}>
-                          <strong>Marca:</strong> {result.brand_name || "Información no disponible"} <br />
-                          <strong>Porción:</strong> {result.nf_serving_size_qty} {result.nf_serving_size_unit} <br />
-                          {result.nf_calories && <span><strong>Calorías:</strong> {result.nf_calories} kcal</span>} <br />
-                          {result.brand_name && <span><strong>Tipo:</strong> Alimento de marca</span>}
-                          {!result.brand_name && <span><strong>Tipo:</strong> Alimento común</span>}
-                        </Card.Text>
-                        <Button variant="success" onClick={() => addToCart(result)} style={styles.addButton}>
-                          Añadir al Carrito
-                        </Button>
                       </Card.Body>
+                      <Collapse in={openCardIndex === index}>
+                        <div style={styles.cardDetails}>
+                          <ul>
+                            <li><strong>Porción:</strong> {result.nf_serving_size_qty} {result.nf_serving_size_unit}</li>
+                            <li><strong>Marca:</strong> {result.brand_name || "Información no disponible"}</li>
+                            <li><strong>Tipo:</strong> {result.brand_name ? "Alimento de marca" : "Alimento común"}</li>
+                            {result.nf_calories && <li><strong>Calorías:</strong> {result.nf_calories} kcal</li>}
+                          </ul>
+                          <Button variant="success" onClick={(e) => { e.stopPropagation(); addToCart(result); }} style={styles.addButton}>
+                            Añadir al Carrito
+                          </Button>
+                        </div>
+                      </Collapse>
                     </Card>
                   </Col>
                 ))
@@ -203,10 +265,19 @@ function App() {
     );
   };
 
-  return view === 'home' ? renderHome() : renderCart();
+  return (
+    <div style={styles.pageBackground}>
+      {view === 'home' ? renderHome() : renderCart()}
+    </div>
+  );
 }
 
 const styles = {
+  pageBackground: {
+    backgroundColor: '#2c2c2c', // Fondo gris oscuro para toda la página
+    minHeight: '100vh',
+    paddingBottom: '30px',
+  },
   card: {
     height: '100%',
     borderRadius: '15px',
@@ -226,33 +297,23 @@ const styles = {
   cardImage: {
     maxWidth: '100%',
     maxHeight: '100%',
-    objectFit: 'contain', // Mantén la imagen sin recortes, centrada y ajustada dentro del contenedor
-    margin: 'auto', // Centra la imagen dentro del contenedor
+    objectFit: 'contain',
+    margin: 'auto',
   },
   cardTitle: {
     fontSize: '1.25rem',
     fontWeight: 'bold',
     color: '#343a40',
   },
-  cardText: {
-    fontSize: '0.9rem',
-    color: '#6c757d',
-  },
-  addButton: {
-    backgroundColor: '#28a745',
-    borderColor: '#28a745',
-    borderRadius: '20px',
-    padding: '10px 20px',
-    fontSize: '0.9rem',
-    fontWeight: 'bold',
-    transition: 'background-color 0.3s ease',
-    ':hover': {
-      backgroundColor: '#218838',
-    },
+  cardDetails: {
+    padding: '15px',
+    textAlign: 'left',
+    backgroundColor: '#f8f9fa',
+    borderTop: '1px solid #ccc',
   },
   imageContainer: {
-    height: '300px', // Ajusta la altura del contenedor de la imagen
-    display: 'flex', // Utiliza Flexbox para centrar la imagen
+    height: '300px',
+    display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: '15px',
@@ -290,6 +351,14 @@ const styles = {
     height: '20px',
     marginRight: '10px',
   },
+  filterContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '20px',
+  },
+  filterButton: {
+    margin: '0 10px',
+  },
   suggestionContainer: {
     border: '1px solid #ccc',
     borderRadius: '5px',
@@ -317,7 +386,7 @@ const styles = {
     fontWeight: 'bold',
     marginBottom: '20px',
     textAlign: 'center',
-    color: '#343a40',
+    color: '#f8f9fa',
   },
   cartList: {
     listStyleType: 'none',
@@ -361,6 +430,18 @@ const styles = {
       backgroundColor: '#0069d9',
     },
   },
+  addButton: {
+    backgroundColor: '#28a745',
+    borderColor: '#28a745',
+    borderRadius: '20px',
+    padding: '10px 20px',
+    fontSize: '0.9rem',
+    fontWeight: 'bold',
+    transition: 'background-color 0.3s ease',
+    ':hover': {
+      backgroundColor: '#218838',
+    },
+  },
   emptyCart: {
     textAlign: 'center',
     fontSize: '1.2rem',
@@ -369,7 +450,19 @@ const styles = {
   noResults: {
     textAlign: 'center',
     fontSize: '1.2rem',
+    color: '#f8f9fa',
+  },
+  mainLogo: {
+    maxHeight: '150px',
+  },
+  bottomLogo: {
+    maxHeight: '100px',
+    marginTop: '20px',
+  },
+  creditText: {
+    fontSize: '1rem',
     color: '#6c757d',
+    marginTop: '10px',
   },
 };
 
