@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/KokoaKitchen/static/css/main.98c5be4c.css",
+    "main.js": "/KokoaKitchen/static/js/main.89b8f106.js",
+    "static/js/453.8ab44547.chunk.js": "/KokoaKitchen/static/js/453.8ab44547.chunk.js",
+    "static/media/kokoa_nutrition.png": "/KokoaKitchen/static/media/kokoa_nutrition.16d5975081003d4d02c0.png",
+    "static/media/logo_nutritionix.png": "/KokoaKitchen/static/media/logo_nutritionix.4a7b5de81394705e2f9e.png",
+    "index.html": "/KokoaKitchen/index.html",
+    "static/media/cart-shopping-solid.svg": "/KokoaKitchen/static/media/cart-shopping-solid.becd0f29bb0927e41e1a00538f2a9527.svg",
+    "main.98c5be4c.css.map": "/KokoaKitchen/static/css/main.98c5be4c.css.map",
+    "main.89b8f106.js.map": "/KokoaKitchen/static/js/main.89b8f106.js.map",
+    "453.8ab44547.chunk.js.map": "/KokoaKitchen/static/js/453.8ab44547.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.98c5be4c.css",
+    "static/js/main.89b8f106.js"
+  ]
+}
